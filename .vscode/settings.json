@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "kubernetes://schema/v1@pod": "file:///opt/tmp/cfdsa-jul25-2022/day02/dov-bear.yaml"
+    }
+}

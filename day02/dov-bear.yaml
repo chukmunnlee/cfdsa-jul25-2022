@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: ConfigMap 
+metadata:
+  name: dov-cm
+  labels:
+    name: dov-cm
+data:
+  INSTANCE_NAME: myapp
+---
+apiVersion: v1 
+kind: Secret 
+metadata:
+  name: dov-secret
+  labels:
+    name: dov-secret
+type: Opaque
+data:
+  db_password: ZW50ZXI= 
+---
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: dov-deploy
+  labels:
+    name: dov-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: dov-po
+  template: 
+    metadata:
+      name: dov-po
+      labels:
+        name: dov-po
+    spec:
+      containers:
+      - name: dov-bear
+        image: chukmunnlee/dov-bear:v1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: INSTANCE_HASH
+          valueFrom: 
+            fieldRef:
+              fieldPath: status.podIP
+        envFrom:
+        - configMapRef: 
+            name: dov-cm
+        - secretRef: 
+            name: dov-secret
+        ports:
+        - containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 3000
+
+---
+apiVersion: v1 
+kind: Service 
+metadata:
+  name: dov-svc
+  labels:
+    name: dov-svc
+spec:
+  type: LoadBalancer
+  selector: 
+    name: dov-po
+  ports:
+  - port: 80
+    targetPort: 3000
