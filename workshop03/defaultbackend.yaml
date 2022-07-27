@@ -1,0 +1,15 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fortune-ing
+  labels:
+    name: fortune-ing
+  namespace: fortunens
+spec:
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: fortune-svc
+      port:
+        number: 3000
