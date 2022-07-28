@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wpdb-svc
+  labels:
+    name: wpdb-svc
+spec:
+  type: ClusterIP
+  selector:
+    name: wpdb-po
+  ports:
+  - port: 3306
+    targetPort: 3306
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wpdb-hsvc
+  labels:
+    name: wpdb-hsvc
+spec:
+  clusterIP: None
+  selector:
+    name: wpdb-po
+  ports:
+  - port: 3306
+    targetPort: 3306
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wpdb-sts
+  labels:
+    name: wpdb-sts
+spec:
+  replicas: 1
+  serviceName: wpdb-hsvc
+  selector:
+    matchLabels:
+      name: wpdb-po
+  volumeClaimTemplates:
+  - metadata:
+      name: wpdb-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: do-block-storage 
+  template:
+    metadata:
+      name: wpdb-po
+      labels:
+        name: wpdb-po
+    spec:
+      containers:
+      - name: wp
+        image: mysql:8.0
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: wpdb-cm
+        - secretRef:
+            name: wpdb-secret
+        volumeMounts:
+        - name: wpdb-pvc
+          mountPath: /var/lib/mysql
+        ports:
+        - containerPort: 3306

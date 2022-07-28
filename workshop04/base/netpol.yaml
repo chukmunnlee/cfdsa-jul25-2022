@@ -1,0 +1,53 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wp-netpol
+  labels:
+    name: wp-netpol
+spec:
+  podSelector:
+    matchLabels:
+      name: wp-po
+  policyTypes:
+  - Ingress
+  ingress:
+  - from: 
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/component
+          operator: In
+          values: 
+          - controller
+        - key: app.kubernetes.io/instance
+          operator: In
+          values: 
+          - cfdsa-jul25
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+          - ingress-nginx
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wpdb-netpol
+  labels:
+    name: wpdb-netpol
+spec:
+  podSelector:
+    matchLabels:
+      name: wpdb-po
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: wp-po
+    ports:
+    - port: 3306

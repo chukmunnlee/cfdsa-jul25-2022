@@ -1,0 +1,110 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-svc
+  labels:
+    name: wp-svc
+spec:
+  type: ClusterIP
+  selector:
+    name: wp-po
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-hsvc
+  labels:
+    name: wp-hsvc
+spec:
+  clusterIP: None
+  selector:
+    name: wp-po
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wp-sts
+  labels:
+    name: wp-sts
+spec:
+  replicas: 1
+  serviceName: wp-hsvc
+  selector:
+    matchLabels:
+      name: wp-po
+  volumeClaimTemplates:
+  - metadata:
+      name: wp-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: do-block-storage 
+  template:
+    metadata:
+      name: wp-po
+      labels:
+        name: wp-po
+    spec:
+      containers:
+      - name: wp
+        image: wordpress:6-apache
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: wpdb-svc
+        - name: WORDPRESS_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: wpdb-cm
+              key: MYSQL_DATABASE
+        - name: WORDPRESS_DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: wpdb-cm
+              key: MYSQL_USER
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wpdb-secret
+              key: MYSQL_PASSWORD
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: wp-pvc
+          mountPath: /var/www/html
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wp-ing
+  labels:
+    name: wp-ing
+  annotations:
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: FQDN
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: 
+          service:
+            name: wp-svc
+            port:
+              number: 80
+
