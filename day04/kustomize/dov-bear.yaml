@@ -20,16 +20,16 @@ spec:
       - name: dov-bear
         image: chukmunnlee/dov-bear:v1
         imagePullPolicy: IfNotPresent
-        #env:
-        #- name: INSTANCE_HASH
-        #  valueFrom: 
-        #    fieldRef:
-        #      fieldPath: status.podIP
-        #envFrom:
-        #- configMapRef: 
-        #    name: dov-cm
-        #- secretRef: 
-        #    name: dov-secret
+        env:
+        - name: INSTANCE_HASH
+          valueFrom: 
+            fieldRef:
+              fieldPath: status.podIP
+        envFrom:
+        - configMapRef: 
+            name: dov-cm
+        - secretRef: 
+            name: dov-secret
         ports:
         - containerPort: 3000
         livenessProbe:

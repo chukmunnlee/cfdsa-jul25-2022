@@ -6,7 +6,7 @@ metadata:
   labels:
     name: dov-deploy
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       name: dov-po
@@ -18,24 +18,24 @@ spec:
     spec:
       containers:
       - name: dov-bear
-        image: chukmunnlee/dov-bear:v1
+        image: chukmunnlee/ska-dov-bear:1.0.0-dev
         imagePullPolicy: IfNotPresent
-        #env:
-        #- name: INSTANCE_HASH
-        #  valueFrom: 
-        #    fieldRef:
-        #      fieldPath: status.podIP
-        #envFrom:
-        #- configMapRef: 
-        #    name: dov-cm
-        #- secretRef: 
-        #    name: dov-secret
+        env:
+        - name: INSTANCE_HASH
+          valueFrom: 
+            fieldRef:
+              fieldPath: status.podIP
+        envFrom:
+        - configMapRef: 
+            name: dov-cm
+        - secretRef: 
+            name: dov-secret
         ports:
-        - containerPort: 3000
+        - containerPort: 5000
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 3000
+            port: 5000
 
 ---
 apiVersion: v1 
@@ -49,5 +49,5 @@ spec:
   selector: 
     name: dov-po
   ports:
-  - port: 3000
-    targetPort: 3000
+  - port: 5000
+    targetPort: 5000

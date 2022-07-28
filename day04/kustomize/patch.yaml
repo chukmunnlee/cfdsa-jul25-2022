@@ -1,0 +1,18 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: dov-deploy 
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: dov-bear 
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi

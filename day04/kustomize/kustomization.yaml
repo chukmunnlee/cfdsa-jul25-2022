@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1 
+kind: Kustomization 
+
+resources:
+- dov-bear.yaml
+
+commonLabels:
+  env: dev
+namePrefix: dev-
+namespace: myns
+
+replicas:
+- name: dov-deploy 
+  count: 1 
+
+images:
+- name: chukmunnlee/dov-bear 
+  newTag: v2
+
+patchesStrategicMerge:
+- patch.yaml
+
+generatorOptions:
+  labels:
+    env: dev
+
+configMapGenerator:
+- name: dov-cm 
+  literals:
+  - INSTANCE_NAME=kustomize-myapp
+
+secretGenerator:
+- name: dov-secret 
+  literals:
+  - db_password=enter

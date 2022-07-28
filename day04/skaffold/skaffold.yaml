@@ -1,0 +1,34 @@
+apiVersion: skaffold/v2beta29 
+kind: Config 
+metadata:
+  name: dov
+
+build: 
+  artifacts:
+  - image: chukmunnlee/ska-dov-bear
+    context: .
+    docker: 
+      dockerfile: Dockerfile
+  local:
+    tryImportMissing: true
+  tagPolicy:
+    envTemplate:
+      template: "{{ .CONTAINER_TAG }}"
+
+deploy:
+  kubectl:
+    manifests:
+    - "manifest/*.yaml"
+    defaultNamespace: myns
+    flags:
+      delete:
+      - --force
+      - --grace-period
+      - "0"
+
+portForward:
+- resourceType: Service 
+  resourceName: dov-svc
+  namespace: myns 
+  port: 5000
+  localPort: 8080
